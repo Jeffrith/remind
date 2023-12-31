@@ -1,0 +1,41 @@
+import discord
+from discord.ext import commands
+import asyncio
+
+# Токен вашего бота Discord
+TOKEN = 'YOUR_DISCORD_BOT_TOKEN'
+
+# Префикс для активации команд бота
+PREFIX = '!'
+
+# Создаем экземпляр бота
+bot = commands.Bot(command_prefix=PREFIX)
+
+# Словарь для хранения напоминаний {id_пользователя: [напоминание]}
+reminders = {}
+
+@bot.event
+async def on_ready():
+    print(f'Бот {bot.user.name} готов к работе')
+
+# Команда для установки напоминания
+@bot.command()
+async def remind(ctx, time_in_minutes: int, *, reminder_text: str):
+    reminder_time = time_in_minutes * 60
+    user_id = ctx.author.id
+
+    if user_id not in reminders:
+        reminders[user_id] = []
+
+    reminders[user_id].append(reminder_text)
+    await ctx.send(f'Я напомню вам через {time_in_minutes} минут: {reminder_text}')
+
+    # Ожидаем указанное время перед отправкой напоминания
+    await asyncio.sleep(reminder_time)
+
+    # Отправляем напоминание пользователю после заданного времени
+    await ctx.send(f'<@{user_id}> Напоминаю: {reminder_text}')
+    reminders[user_id].remove(reminder_text)
+
+# Запуск бота
+bot.run(TOKEN)
